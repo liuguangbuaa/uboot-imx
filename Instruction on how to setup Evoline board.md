@@ -198,9 +198,48 @@ upgargs=setenv bootargs ${bootargs} ${mtdparts} supportip=${supportip} local_con
 upgrade=usb start; setenv ethact ${ethprime}; run basicargs; if test ${local_context} != yes; then setenv netretry yes; dhcp; setenv supportip ${serverip}; tftp; else tftp ${supportip}:${bootfile}; fi; if test $? = 0; then run upgargs; usb stop; fit_remove_nodes_with_at_in_name; fit_check_property_existence philips,card-id-rev-based-dtb; if test $? = 0; then fit_conf_find_compatible philips,card-id-rev,${card_id}-${card_rev}; if test $? != 0; then fit_conf_find_compatible philips,card-id,${card_id}; fi; if test -n ${fit_config} ; then bootm ${loadaddr}#${fit_config}; fi; fi; fi; reset;
 usbethaddr=00:09:fb:05:c3:d2
 
-
-
-boot only
-
+autoload=no
+basicargs=setenv bootargs mtdoops.mtddev=oopslog mtdoops.record_size=16384 vmalloc=392MB consoleblank=0  console=ttymxc0,${baudrate} bootRev=IntelliVue-OSS-R18-26 ethaddr=${usbethaddr}
+baudrate=115200
+board_id=1296
+bootargs_systemd=if test ${card_id} = 11a0; then setenv systemd_target iv-calimon.target; else setenv systemd_target iv-evomon.target; fi; setenv bootargs ${bootargs} systemd.unit=${systemd_target}
+bootcmd=echo Manufacturing Build: Entering Upgrade only ; run upgrade
+bootcount=1
+bootdelay=3
+bootfile=Delphi.uImage
+bootp_vci=8a1e93f5-107d-4ac9-9c54-63d12c75e1ca
+card_id=11a0
+card_rev=0004
+dhcp_srv_vendor-class-identifier=afb0ec93-0d32-4c9a-81e3-ea4b4a20932f
+do_buzzer=0
+dtb=11a0-0004.dtb
+eth1addr=00:09:fb:05:c3:9e
+ethaddr=00:09:fb:05:c3:9f
+ethprime=sms950
+fdt_addr=0x18000000
+fdtcontroladdr=8fd5fe18
+loadaddr=0x12000000
+mmc_detect_bootpart=true
+mmc_load_fit_image=ext2load mmc ${mmcdev}:${mmcpart} ${loadaddr} boot/uImage A00000; if test $? != 0; then reset ; fi;
+mmcargs=setenv bootargs ${bootargs} root=${mmcroot} rootfstype=${mmcrootfstype}
+mmcboot=run mmc_load_fit_image; run basicargs; run mmcargs; run bootargs_systemd; run startuimage;
+mmcdev=0
+mmcpart=1
+mmcroot=/dev/mmcblk0p1 ro
+mmcrootfstype=ext3 rootwait
+mtdparts=mtdparts=m25p32:512k(u-boot),64k(u-boot-env1),64k(u-boot-env2),512k(activity);delphi-sram:64k(oopslog),512k(logfiles),-(buffmem)
+netargs=setenv bootargs ${bootargs} root=/dev/nfs ip=dhcp nfsroot=${rootpath},v3,tcp
+netboot=echo Booting from net ...; usb start; setenv ethact ${ethprime}; setenv scriptaddr 0x14000000; run basicargs; dhcp; tftp ${loadaddr} uImage; if test $? = 0; then tftp ${scriptaddr} npi-ramdisk.fit; else reset; fi; if test $? = 0; then if test ${card_id} = 11a0; then setenv netbootconfig imx6dp-calimon; else setenv netbootconfig imx6dp-evomon; fi; else reset; fi; if test $? = 0; then bootm ${loadaddr}:kernel ${scriptaddr}:ramdisk ${loadaddr}:${netbootconfig}; else reset; fi;
+netretry=once
+panel_card_id=7240
+startuimage=fit_check_property_existence philips,card-id-rev-based-dtb; if test $? = 0; then fit_conf_find_compatible philips,card-id-rev,${card_id}-${card_rev}; if test $? != 0; then fit_conf_find_compatible philips,card-id,${card_id}; fi; if test -n ${fit_config} ; then bootm ${loadaddr}#${fit_config}; fi; fi;
+stderr=serial
+stdin=serial
+stdout=serial
+uimage=uImage
+upgargs=setenv bootargs ${bootargs} ${mtdparts} supportip=${supportip} local_context=${local_context} ip=${ipaddr}::${gatewayip}:${netmask}:::
+upgrade=usb start; setenv ethact ${ethprime}; run basicargs; if test ${local_context} != yes; then setenv netretry yes; dhcp; setenv supportip ${serverip}; tftp; else tftp ${supportip}:${bootfile}; fi; if test $? = 0; then run upgargs; usb stop; fit_check_property_existence philips,card-id-rev-based-dtb; if test $? = 0; then fit_conf_find_compatible philips,card-id-rev,${card_id}-${card_rev}; if test $? != 0; then fit_conf_find_compatible philips,card-id,${card_id}; fi; if test -n ${fit_config} ; then bootm ${loadaddr}#${fit_config}; fi; fi; fi; reset;
+usbethaddr=00:09:fb:05:c3:9e
+zboot=run mmc_detect_bootpart; ext2load mmc ${mmcdev}:${mmcpart} ${loadaddr} boot/zImage; ext2load mmc ${mmcdev}:${mmcpart} ${fdt_addr} boot/${card_id}.dtb; ext2load mmc ${mmcdev}:${mmcpart} ${fdt_addr} boot/${card_id}-${card_rev}.dtb; run basicargs; run mmcargs; run bootargs_systemd; bootz ${loadaddr} - ${fdt_addr};
 
 
